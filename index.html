@@ -9,32 +9,35 @@
 <title>Firestick Watch</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.PNG">
 <style>
-:root{--ink:#1a1f1c;--paper:#eef0ea;--card:#fff;--line:#d9dbd2;--muted:#8a8577;--sub:#55584f;--fg:#1D9E75;--bg:#5DCAA5;--awake:#9FE1CB;--standby:#b4b2a9;--down:#E24B4A}
+:root{--ink:#1a1f1c;--paper:#eef0ea;--card:#fff;--line:#d9dbd2;--muted:#8a8577;--sub:#55584f;
+--d-awake:#1D9E75;--d-awake-l:#5DCAA5;--d-standby:#b4b2a9;--d-down:#E24B4A;--d-down-l:#F09595;
+--a-fg:#378ADD;--a-bg:#8FC4F2;--a-closed:#CFCDC4;--a-na:#E5E3DB}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .panel{width:100%;max-width:440px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:32px 22px 22px;position:relative}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;position:relative}
 .gear{position:absolute;top:14px;right:14px;background:none;border:0;color:var(--muted);line-height:1;cursor:pointer;padding:6px}
-.hero{text-align:center}
-.dot{width:14px;height:14px;border-radius:50%;background:var(--line);margin:0 auto 14px;transition:background .4s}
-.word{font-size:32px;font-weight:500;line-height:1.1}
-.since{font-size:14px;color:var(--sub);margin-top:6px}
-.check{display:block;margin:18px auto 0;font:inherit;font-size:13px;padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-.check:disabled{color:var(--muted)}
-.strip{display:flex;gap:3px;height:28px;margin-top:28px}
+.label{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:12px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line);flex-shrink:0;transition:background .4s}
+.word{font-size:24px;font-weight:500;line-height:1.15}
+.since{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap}
+.strip{display:flex;gap:3px;height:16px;margin-top:12px}
 .strip div{flex:1;border-radius:2px;background:var(--line)}
-.axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:11px;color:var(--muted);margin-top:14px}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.sep{border-top:1px solid var(--line);margin:20px 0}
 .stats{display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
 .stat{flex:1;text-align:center}
-.stat b{display:block;font-size:20px;font-weight:500}
-.stat span{font-size:12px;color:var(--muted)}
+.stat b{display:block;font-size:18px;font-weight:500}
+.stat span{font-size:11px;color:var(--muted)}
+.check{display:block;margin:16px auto 0;font:inherit;font-size:13px;padding:7px 18px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.check:disabled{color:var(--muted)}
 .settings{display:none;margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 22px;font-size:14px}
 .settings.open{display:block}
 .settings label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
 .settings input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fbfbf8;color:var(--ink);margin-bottom:12px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
 button.b{font:inherit;font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
 button.b.sec{background:transparent;color:var(--ink)}
 .msg{font-size:12px;color:var(--muted);margin-top:10px;min-height:1em}
@@ -44,32 +47,43 @@ button.b.sec{background:transparent;color:var(--ink)}
 <div class="panel">
 <div class="card">
 <button class="gear" id="gear" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-<div class="hero">
-<div class="dot" id="dot"></div>
-<div class="word" id="word">Waiting</div>
-<div class="since" id="since">No reports yet</div>
-<button class="check" id="check">Check now</button>
-</div>
-<div class="strip" id="strip"></div>
-<div class="axis"><span>12h ago</span><span>now</span></div>
+
+<div class="label">Firestick</div>
+<div class="row"><div class="dot" id="dDot"></div><div class="word" id="dWord">Waiting</div><div class="since" id="dSince"></div></div>
+<div class="strip" id="dStrip"></div>
 <div class="legend">
-<span><i style="background:var(--fg)"></i>App on screen</span>
-<span><i style="background:var(--bg)"></i>App in background</span>
-<span><i style="background:var(--awake)"></i>Awake, app closed</span>
-<span><i style="background:var(--standby)"></i>Standby</span>
-<span><i style="background:var(--down)"></i>Unreachable</span>
+<span><i style="background:var(--d-awake-l)"></i>Awake</span>
+<span><i style="background:var(--d-standby)"></i>Standby</span>
+<span><i style="background:var(--d-down-l)"></i>Unreachable</span>
 </div>
+
+<div class="sep"></div>
+
+<div class="label" id="aLabel">App</div>
+<div class="row"><div class="dot" id="aDot"></div><div class="word" id="aWord">Waiting</div><div class="since" id="aSince"></div></div>
+<div class="strip" id="aStrip"></div>
+<div class="legend">
+<span><i style="background:var(--a-fg)"></i>On screen</span>
+<span><i style="background:var(--a-bg)"></i>Background</span>
+<span><i style="background:var(--a-closed)"></i>Closed</span>
+<span><i style="background:var(--a-na)"></i>n/a (stick asleep)</span>
+</div>
+
 <div class="stats">
-<div class="stat"><b id="awakePct">–</b><span>awake in 12h</span></div>
-<div class="stat"><b id="appPct">–</b><span>app on screen</span></div>
+<div class="stat"><b id="awakePct">–</b><span>stick awake</span></div>
+<div class="stat"><b id="fgPct">–</b><span>app on screen</span></div>
 <div class="stat"><b id="ago">–</b><span>last check</span></div>
 </div>
+<button class="check" id="check">Check now</button>
 </div>
+
 <div class="settings" id="settings">
 <label for="topic">ntfy topic</label>
 <input id="topic" type="text" placeholder="Firestick-F-room1">
-<button class="b" id="save">Use this topic</button>
-<div class="row" style="margin-top:12px">
+<label for="appName">App label</label>
+<input id="appName" type="text" placeholder="Smarters">
+<button class="b" id="save">Save</button>
+<div class="btns" style="margin-top:12px">
 <button class="b sec" data-s="foreground">On screen</button>
 <button class="b sec" data-s="background">Background</button>
 <button class="b sec" data-s="awake">Awake</button>
@@ -81,44 +95,58 @@ button.b.sec{background:transparent;color:var(--ink)}
 </div>
 <script>
 const $=id=>document.getElementById(id);
-const STATES={
-foreground:{word:'App on screen',color:'var(--fg)'},
-background:{word:'App in background',color:'var(--bg)'},
-awake:{word:'Awake, app closed',color:'var(--awake)'},
-standby:{word:'Standby',color:'var(--standby)'},
-unreachable:{word:'Unreachable',color:'var(--down)'}
+const BARS=40;
+// Each raw message maps to a device state and an app state
+const MAP={
+foreground:{d:'awake',a:'fg'},
+background:{d:'awake',a:'bg'},
+awake:{d:'awake',a:'closed'},
+standby:{d:'standby',a:'na'},
+unreachable:{d:'down',a:'na'}
 };
 const ALIAS={online:'awake',offline:'unreachable',asleep:'standby',sleep:'standby',off:'unreachable'};
+const DEV={awake:{w:'Awake',c:'var(--d-awake)',l:'var(--d-awake-l)'},standby:{w:'Standby',c:'var(--d-standby)',l:'var(--d-standby)'},down:{w:'Unreachable',c:'var(--d-down)',l:'var(--d-down-l)'}};
+const APP={fg:{w:'On screen',c:'var(--a-fg)',l:'var(--a-fg)'},bg:{w:'Running in background',c:'var(--a-bg)',l:'var(--a-bg)'},closed:{w:'Closed',c:'var(--a-closed)',l:'var(--a-closed)'},na:{w:'Unknown, stick asleep',c:'var(--a-na)',l:'var(--a-na)'}};
+
 let topic=localStorage.getItem('firestickTopic')||'';
+let appName=localStorage.getItem('firestickApp')||'Smarters';
 let checks=[];
-$('topic').value=topic;
+$('topic').value=topic;$('appName').value=appName;$('aLabel').textContent=appName;
 $('gear').onclick=()=>$('settings').classList.toggle('open');
-const BARS=48;
+
 function fmt(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
 function rel(ms){const s=Math.round(ms/1000);if(s<60)return s+'s';const m=Math.round(s/60);if(m<60)return m+' min';return Math.round(m/60)+'h'}
-function render(){
-const strip=$('strip');strip.innerHTML='';
+
+function strip(el,key,table){
+el.innerHTML='';
 const shown=checks.slice(-BARS);
 for(let i=0;i<BARS;i++){
 const d=document.createElement('div');
 const c=shown[i-(BARS-shown.length)];
-if(c){d.style.background=STATES[c.state].color;if(i!==BARS-1)d.style.opacity='.7'}
-strip.appendChild(d);
+if(c){const t=table[c[key]];d.style.background=i===BARS-1?t.c:t.l}
+el.appendChild(d);
 }
-if(!checks.length){$('dot').style.background='var(--line)';$('word').textContent='Waiting';$('since').textContent='No reports yet';$('awakePct').textContent='–';$('appPct').textContent='–';$('ago').textContent='–';return}
+}
+function since(key){let i=checks.length-1;while(i>0&&checks[i-1][key]===checks[i][key])i--;return 'since '+fmt(checks[i].t)}
+
+function render(){
+strip($('dStrip'),'d',DEV);strip($('aStrip'),'a',APP);
+if(!checks.length){
+$('dDot').style.background=$('aDot').style.background='var(--line)';
+$('dWord').textContent=$('aWord').textContent='Waiting';
+$('dSince').textContent=$('aSince').textContent='';
+$('awakePct').textContent=$('fgPct').textContent=$('ago').textContent='–';return}
 const last=checks[checks.length-1];
-$('dot').style.background=STATES[last.state].color;
-$('word').textContent=STATES[last.state].word;
-let i=checks.length-1;while(i>0&&checks[i-1].state===last.state)i--;
-$('since').textContent='since '+fmt(checks[i].t);
-const awake=checks.filter(c=>c.state!=='standby'&&c.state!=='unreachable').length;
-const fg=checks.filter(c=>c.state==='foreground').length;
-$('awakePct').textContent=Math.round(awake/checks.length*100)+'%';
-$('appPct').textContent=Math.round(fg/checks.length*100)+'%';
+$('dDot').style.background=DEV[last.d].c;$('dWord').textContent=DEV[last.d].w;$('dSince').textContent=since('d');
+$('aDot').style.background=APP[last.a].c;$('aWord').textContent=APP[last.a].w;$('aSince').textContent=last.a==='na'?'':since('a');
+$('awakePct').textContent=Math.round(checks.filter(c=>c.d==='awake').length/checks.length*100)+'%';
+const awakeN=checks.filter(c=>c.d==='awake').length;
+$('fgPct').textContent=awakeN?Math.round(checks.filter(c=>c.a==='fg').length/awakeN*100)+'%':'–';
 tick();
 }
 function tick(){if(checks.length)$('ago').textContent=rel(Date.now()-checks[checks.length-1].t)+' ago'}
 setInterval(tick,1000);
+
 async function poll(){
 if(!topic){$('msg').textContent='Set a topic to start';return}
 try{
@@ -126,17 +154,21 @@ const r=await fetch('https://ntfy.sh/'+encodeURIComponent(topic)+'/json?poll=1&s
 const lines=(await r.text()).trim().split('\n').filter(Boolean);
 checks=lines.map(l=>{try{return JSON.parse(l)}catch(e){return null}})
 .filter(m=>m&&m.event==='message')
-.map(m=>{let s=(m.message||'').trim().toLowerCase();s=ALIAS[s]||s;return{state:s,t:new Date(m.time*1000)}})
-.filter(c=>STATES[c.state])
-.sort((a,b)=>a.t-b.t);
+.map(m=>{let s=(m.message||'').trim().toLowerCase();s=ALIAS[s]||s;const mp=MAP[s];return mp?{d:mp.d,a:mp.a,t:new Date(m.time*1000)}:null})
+.filter(Boolean).sort((a,b)=>a.t-b.t);
 $('msg').textContent=checks.length?'':'No messages in the last 12 hours';
 render();
 }catch(e){$('msg').textContent='Could not reach ntfy.sh'}
 }
-$('save').onclick=()=>{topic=$('topic').value.trim();localStorage.setItem('firestickTopic',topic);checks=[];render();poll()};
+
+$('save').onclick=()=>{
+topic=$('topic').value.trim();localStorage.setItem('firestickTopic',topic);
+appName=$('appName').value.trim()||'App';localStorage.setItem('firestickApp',appName);$('aLabel').textContent=appName;
+checks=[];render();poll()};
 async function send(s){if(!topic){$('msg').textContent='Set a topic first';return}
 try{await fetch('https://ntfy.sh/'+encodeURIComponent(topic),{method:'POST',body:s});setTimeout(poll,800)}catch(e){$('msg').textContent='Could not send'}}
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>send(b.dataset.s));
+
 $('check').onclick=async()=>{
 if(!topic)return;
 const btn=$('check');const before=checks.length?checks[checks.length-1].t.getTime():0;

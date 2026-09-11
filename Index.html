@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firestick Watch</title>
+<style>
+:root{--ink:#1a1f1c;--paper:#eef0ea;--on:#2f6b4f;--off:#a13d2e;--unk:#8a8577;--line:#c7c9bd;--accent:#3c5942}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.panel{width:100%;max-width:460px}
+.masthead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.masthead h1{font-size:1.4rem;font-weight:600;margin:0}
+.masthead span{font-size:.75rem;color:var(--unk);font-style:italic}
+.card{background:#fff;border:1px solid var(--line);padding:28px 24px;margin-bottom:18px}
+.row{display:flex;align-items:center;gap:14px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--unk);flex-shrink:0;transition:background .4s}
+.dot.on{background:var(--on)}.dot.off{background:var(--off)}
+.big{font-size:1.3rem;line-height:1.2}
+.sub{margin-top:6px;font-size:.85rem;color:#55584f}
+.meta{font-size:.8rem;color:var(--unk);border-top:1px solid var(--line);margin-top:20px;padding-top:14px;display:flex;justify-content:space-between}
+.setup{font-size:.82rem;line-height:1.5;color:#444741}
+.setup label{display:block;margin-bottom:4px;font-size:.78rem;color:var(--unk)}
+.setup input{width:100%;font-family:inherit;font-size:.9rem;padding:7px 9px;border:1px solid var(--line);background:#fbfbf8;color:var(--ink);margin-bottom:14px}
+button{font-family:inherit;font-size:.85rem;padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+button.secondary{background:transparent;color:var(--ink)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.note{margin-top:18px;font-size:.78rem;color:var(--unk);line-height:1.5}
+code{background:#e2e4da;padding:1px 5px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="panel">
+<div class="masthead"><h1>Firestick Watch</h1><span id="clock"></span></div>
+<div class="card">
+<div class="row"><div class="dot" id="dot"></div><div><div class="big" id="statusText">Waiting for first report</div><div class="sub" id="statusSub">No pinger has checked in yet</div></div></div>
+<div class="meta"><span id="topicLabel">Topic: none</span><span id="pollLabel">Checking</span></div>
+</div>
+<div class="card setup">
+<label for="topicInput">Watch topic</label>
+<input id="topicInput" type="text" placeholder="e.g. Firestick-F-room1">
+<div class="actions">
+<button id="saveTopic">Use this topic</button>
+<button class="secondary" id="simOnline">Simulate online</button>
+<button class="secondary" id="simOffline">Simulate offline</button>
+</div>
+<div class="note">Reads from a free <code>ntfy.sh</code> topic. Your pinger posts <code>online</code> or <code>offline</code> to that topic and this page updates automatically.</div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let topic=localStorage.getItem('firestickTopic')||'';
+$('topicInput').value=topic;
+setInterval(()=>{$('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},1000);
+function render(state,when){
+const d=$('dot');d.classList.remove('on','off');
+if(state==='online'){d.classList.add('on');$('statusText').textContent='Online';$('statusSub').textContent='Firestick responded to the last check'}
+else if(state==='offline'){d.classList.add('off');$('statusText').textContent='Offline';$('statusSub').textContent='Firestick did not respond to the last check'}
+else{$('statusText').textContent='Waiting for first report';$('statusSub').textContent='No pinger has checked in yet'}
+if(when)$('pollLabel').textContent='Last update '+when.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+async function poll(){
+if(!topic){$('pollLabel').textContent='No topic set';return}
+try{
+const r=await fetch('https://ntfy.sh/'+encodeURIComponent(topic)+'/json?poll=1');
+const lines=(await r.text()).trim().split('\n').filter(Boolean);
+if(!lines.length){$('pollLabel').textContent='No messages yet';return}
+const last=JSON.parse(lines[lines.length-1]);
+const body=(last.message||'').trim().toLowerCase();
+if(body==='online'||body==='offline')render(body,new Date(last.time*1000));
+else $('pollLabel').textContent='Unrecognized: '+last.message;
+}catch(e){$('pollLabel').textContent='Could not reach ntfy.sh'}
+}
+function applyTopic(t){topic=t.trim();localStorage.setItem('firestickTopic',topic);$('topicLabel').textContent=topic?'Topic: '+topic:'Topic: none';render(null,null);poll()}
+$('saveTopic').onclick=()=>applyTopic($('topicInput').value);
+async function send(s){if(!topic){$('pollLabel').textContent='Set a topic first';return}
+try{await fetch('https://ntfy.sh/'+encodeURIComponent(topic),{method:'POST',body:s});setTimeout(poll,800)}catch(e){$('pollLabel').textContent='Could not send test'}}
+$('simOnline').onclick=()=>send('online');
+$('simOffline').onclick=()=>send('offline');
+if(topic)$('topicLabel').textContent='Topic: '+topic;
+poll();setInterval(poll,15000);
+</script>
+</body>
+</html>

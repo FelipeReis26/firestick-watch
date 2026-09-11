@@ -19,6 +19,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system
 .dot{width:14px;height:14px;border-radius:50%;background:var(--line);margin:0 auto 14px;transition:background .4s}
 .word{font-size:32px;font-weight:500;line-height:1.1}
 .since{font-size:14px;color:var(--sub);margin-top:6px}
+.check{display:block;margin:18px auto 0;font:inherit;font-size:13px;padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.check:disabled{color:var(--muted)}
 .strip{display:flex;gap:3px;height:28px;margin-top:28px}
 .strip div{flex:1;border-radius:2px;background:var(--line)}
 .axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
@@ -46,6 +48,7 @@ button.b.sec{background:transparent;color:var(--ink)}
 <div class="dot" id="dot"></div>
 <div class="word" id="word">Waiting</div>
 <div class="since" id="since">No reports yet</div>
+<button class="check" id="check">Check now</button>
 </div>
 <div class="strip" id="strip"></div>
 <div class="axis"><span>12h ago</span><span>now</span></div>
@@ -134,6 +137,18 @@ $('save').onclick=()=>{topic=$('topic').value.trim();localStorage.setItem('fires
 async function send(s){if(!topic){$('msg').textContent='Set a topic first';return}
 try{await fetch('https://ntfy.sh/'+encodeURIComponent(topic),{method:'POST',body:s});setTimeout(poll,800)}catch(e){$('msg').textContent='Could not send'}}
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>send(b.dataset.s));
+$('check').onclick=async()=>{
+if(!topic)return;
+const btn=$('check');const before=checks.length?checks[checks.length-1].t.getTime():0;
+btn.disabled=true;btn.textContent='Checking…';
+try{await fetch('https://ntfy.sh/'+encodeURIComponent(topic)+'-cmd',{method:'POST',body:'check'})}catch(e){}
+const start=Date.now();
+const fast=setInterval(async()=>{
+await poll();
+const latest=checks.length?checks[checks.length-1].t.getTime():0;
+if(latest>before||Date.now()-start>20000){clearInterval(fast);btn.disabled=false;btn.textContent=latest>before?'Check now':'No reply, try again'}
+},1500);
+};
 if(!topic)$('settings').classList.add('open');
 poll();setInterval(poll,15000);
 </script>

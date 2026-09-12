@@ -96,7 +96,9 @@ button.b.sec{background:transparent;color:var(--ink)}
 <script>
 const $=id=>document.getElementById(id);
 const BARS=40;
-// Each raw message maps to a device state and an app state
+// Each raw message maps to a device state and an app state. Newer messages carry
+// an extra ":processState" suffix (active/cached/absent/unknown); older bare
+// messages in history have none, which just leaves that field unknown.
 const MAP={
 foreground:{d:'awake',a:'fg'},
 background:{d:'awake',a:'bg'},
@@ -138,7 +140,13 @@ $('dSince').textContent=$('aSince').textContent='';
 $('awakePct').textContent=$('fgPct').textContent=$('ago').textContent='–';return}
 const last=checks[checks.length-1];
 $('dDot').style.background=DEV[last.d].c;$('dWord').textContent=DEV[last.d].w;$('dSince').textContent=since('d');
-$('aDot').style.background=APP[last.a].c;$('aWord').textContent=APP[last.a].w;$('aSince').textContent=last.a==='na'?'':since('a');
+$('aDot').style.background=APP[last.a].c;
+// Only the background state benefits from the extra detail, cached means Android
+// is holding a dead process in memory, not that anything is actually running.
+let aWord=APP[last.a].w;
+if(last.a==='bg'&&last.p==='cached')aWord+=' (cached)';
+$('aWord').textContent=aWord;
+$('aSince').textContent=last.a==='na'?'':since('a');
 $('awakePct').textContent=Math.round(checks.filter(c=>c.d==='awake').length/checks.length*100)+'%';
 const awakeN=checks.filter(c=>c.d==='awake').length;
 $('fgPct').textContent=awakeN?Math.round(checks.filter(c=>c.a==='fg').length/awakeN*100)+'%':'–';
@@ -154,7 +162,13 @@ const r=await fetch('https://ntfy.sh/'+encodeURIComponent(topic)+'/json?poll=1&s
 const lines=(await r.text()).trim().split('\n').filter(Boolean);
 checks=lines.map(l=>{try{return JSON.parse(l)}catch(e){return null}})
 .filter(m=>m&&m.event==='message')
-.map(m=>{let s=(m.message||'').trim().toLowerCase();s=ALIAS[s]||s;const mp=MAP[s];return mp?{d:mp.d,a:mp.a,t:new Date(m.time*1000)}:null})
+.map(m=>{
+const raw=(m.message||'').trim().toLowerCase();
+const [rawState,rawProc]=raw.split(':');
+let s=ALIAS[rawState]||rawState;
+const mp=MAP[s];
+return mp?{d:mp.d,a:mp.a,p:rawProc||'unknown',t:new Date(m.time*1000)}:null;
+})
 .filter(Boolean).sort((a,b)=>a.t-b.t);
 $('msg').textContent=checks.length?'':'No messages in the last 12 hours';
 render();
